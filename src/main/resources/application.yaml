@@ -18,7 +18,9 @@ app:
   oauth2:
     authorized-redirect-uris:
 #      - http://localhost:8080/oauth/redirect
-      - http://49.50.172.57:3306/oauth/redirect
+      - http://49.50.172.57:8080/oauth/redirect
+      - http://49.50.172.57:8080/login/oauth2/code/kakao
+      - http://49.50.172.57:8080/signin/oauth/code/google
       - http://localhost:8080/oauth/redirect
 
 
