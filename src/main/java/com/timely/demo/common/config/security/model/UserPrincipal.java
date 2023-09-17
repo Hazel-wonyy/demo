@@ -39,8 +39,6 @@ public class UserPrincipal implements UserDetails, OAuth2User {
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         return this.loginInfoVo.getRoles().stream().map(SimpleGrantedAuthority::new).toList();
-        //new SimpleGrantedAuthority("");
-        //return this.loginInfoVo.getRoles().stream().map(item -> new SimpleGrantedAuthority(item)).toList();
     }
 
     @Override

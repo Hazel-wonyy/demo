@@ -4,9 +4,6 @@ import lombok.Getter;
 
 @Getter
 public enum ProviderType {
-//    LOCAL,
     GOOGLE,
-//    FACEBOOK,
-//    NAVER,
     KAKAO
 }
