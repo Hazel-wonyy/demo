@@ -17,6 +17,8 @@ import org.springframework.security.oauth2.core.OAuth2AuthenticationException;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
+
 @Service
 @RequiredArgsConstructor
 public class CustomOAuth2UserService extends DefaultOAuth2UserService {
@@ -72,16 +74,17 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
                 .unm(userInfo.getName())
                 .roleType(RoleType.USER)
                 .email(userInfo.getEmail())
-                //.pic(userInfo.getImageUrl())
+                .createdAt(LocalDateTime.now())
                 .build();
         rep.save(entity);
         return entity;
     }
 
-    /** 사용자 이름 업데이트**/
+    /** 사용자 업데이트**/
     private UserEntity updateUser(UserEntity user, OAuth2UserInfo userInfo) {
         if (userInfo.getName() != null && !user.getUnm().equals(userInfo.getName())) {
             user.setUnm(userInfo.getName());
+            user.setUpdatedAt(LocalDateTime.now());
         }
         return user;
     }
