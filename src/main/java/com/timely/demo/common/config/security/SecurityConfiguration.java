@@ -41,7 +41,7 @@ public class SecurityConfiguration {
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
     private final OAuth2AuthorizationRequestBasedOnCookieRepository oAuth2AuthorizationRequestBasedOnCookieRepository;
 
-    //webSecurityCustomizer를 제외한 모든 것, 시큐리티를 거친다. 보안과 연관
+    /** 요청 권한 설정 **/
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity httpSecurity) throws Exception {
         return httpSecurity.authorizeHttpRequests(authz ->
@@ -55,41 +55,43 @@ public class SecurityConfiguration {
                                                 , "/oauth2/**"
                                                 , "/oauth/**"
                                         ).permitAll()
-
                                         .requestMatchers("**exception**").permitAll()
-//                                        .requestMatchers(HttpMethod.GET, "/sign-api/refresh-token").permitAll()
-
                                         .anyRequest().permitAll()
+                )
+                /* 세션 사용 X */
+                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
 
-                ) //사용 권한 체크
-
-                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)) //세션 사용 X
-                .httpBasic(http -> http.disable()) //UI 있는 시큐리티 설정을 비활성화
+                /* HTTP 기본인증 비활성화 */
+                .httpBasic(http -> http.disable())
+                /* 폼기반 로그인 비활성화 */
                 .formLogin(http -> http.disable())
 
+                /* CSRF 보안이 필요 X, 쿠키와 세션을 이용해서 인증을 하고 있기 때문에 발생하는 일, https://kchanguk.tistory.com/197 */
+                .csrf(csrf -> csrf.disable())
 
-                .csrf(csrf -> csrf.disable()) //CSRF 보안이 필요 X, 쿠키와 세션을 이용해서 인증을 하고 있기 때문에 발생하는 일, https://kchanguk.tistory.com/197
+                /* 사용자 인증 및 접근 권한 예외처리 */
                 .exceptionHandling(except -> {
                     except.accessDeniedHandler(tokenAccessDeniedHandler);
                     except.authenticationEntryPoint(new RestAuthenticationEntryPoint());
                 })
+
+
                 .oauth2Login(oauth2 -> oauth2
                         .authorizationEndpoint(authorization -> authorization.baseUri("/oauth2/authorization")
                                 .authorizationRequestRepository(oAuth2AuthorizationRequestBasedOnCookieRepository))
                         .redirectionEndpoint(redirection -> redirection.baseUri("/*/oauth2/code/*"))
                         .userInfoEndpoint(userInfo -> userInfo.userService(oAuth2UserService))
-                        .successHandler(successHandler())
+                        .successHandler(oAuth2AuthenticationSuccessHandler)
                         .failureHandler(oAuth2AuthenticationFailureHandler())
                 )
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
                 .build();
     }
 
-
+    /** 사용자 정보 로그찍기**/
     @Bean
     public AuthenticationSuccessHandler successHandler() {
         return (request, response, authentication) -> {
-            // 사용자 정보 가져오기
             if (authentication instanceof OAuth2AuthenticationToken) {
                 OAuth2AuthenticationToken oauth2Token = (OAuth2AuthenticationToken) authentication;
                 OAuth2User auth = oauth2Token.getPrincipal();
@@ -100,33 +102,35 @@ public class SecurityConfiguration {
         };
     }
 
+    /** 비밀번호 encoder**/
     @Bean
     public PasswordEncoder passwordEncoder() {
         return PasswordEncoderFactories.createDelegatingPasswordEncoder();
     }
 
-    /*
-     * Oauth 인증 실패 핸들러
-     * */
+    /** Oauth 인증 실패 핸들러 **/
     @Bean
     public OAuth2AuthenticationFailureHandler oAuth2AuthenticationFailureHandler() {
         return new OAuth2AuthenticationFailureHandler(oAuth2AuthorizationRequestBasedOnCookieRepository);
     }
 
-    /*
-     * Cors 설정
-     * */
+    /** Cors 설정 **/
     @Bean
     public UrlBasedCorsConfigurationSource corsConfigurationSource() {
         UrlBasedCorsConfigurationSource corsConfigSource = new UrlBasedCorsConfigurationSource();
 
         CorsConfiguration corsConfig = new CorsConfiguration();
+        /* 요청 헤더 설정*/
         corsConfig.setAllowedHeaders(Arrays.asList(corsProperties.getAllowedHeaders().split(",")));
+        /* 허용된 HTTP메소드 설정*/
         corsConfig.setAllowedMethods(Arrays.asList(corsProperties.getAllowedMethods().split(",")));
+        /* 허용된 출차(Origin) 설정*/
         corsConfig.setAllowedOrigins(Arrays.asList(corsProperties.getAllowedOrigins().split(",")));
+        /* 자격 증명 허용*/
         corsConfig.setAllowCredentials(true);
+        /* CORS 요청 유효기간 설정 */
         corsConfig.setMaxAge(corsConfig.getMaxAge());
-
+        /* 모든 URL CORS 설정*/
         corsConfigSource.registerCorsConfiguration("/**", corsConfig);
         return corsConfigSource;
     }

@@ -19,9 +19,4 @@ public class AuthenticationFacade {
         UserPrincipal userDetails = (UserPrincipal) auth.getPrincipal();
         return UserEntity.builder().userId(userDetails.getIuser()).build();
     }
-
-    //로그인한 유저의 pk값 구하기
-    public Long getLoginUserPk() {
-        return getLoginUser().getUserId();
-    }
 }

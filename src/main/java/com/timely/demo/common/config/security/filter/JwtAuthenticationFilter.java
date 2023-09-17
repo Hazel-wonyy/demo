@@ -39,11 +39,14 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         log.info("JwtAuthenticationFilter - doFilterInternal: 토큰 추출 token: {}", token);
 
         log.info("JwtAuthenticationFilter - doFilterInternal: 토큰 유효성 체크 시작");
-        if(StringUtils.hasText(token)) { // 요청 헤더에 토큰이 있으면 로그인 처리를 한다
+        if(StringUtils.hasText(token)) { /* 요청 헤더에 토큰이 있으면 로그인 처리를 한다 */
             AuthToken authToken = tokenProvider.convertAuthToken(token, appProperties.getAccessTokenKey());
-            if(authToken.validate()) {
+
+            if(authToken.validate()) { /* 토큰 유효성 검사 */
                 String blackAccessTokenKey = String.format("%s:%s", appProperties.getAuth().getRedisAccessBlackKey(), token);
                 String isLogout = redisService.getValues(blackAccessTokenKey);
+
+                /* 사용자 인증정보 설정 */
                 if(ObjectUtils.isEmpty(isLogout)) {
                     Authentication authentication = tokenProvider.getAuthentication(authToken);
                     SecurityContextHolder.getContext().setAuthentication(authentication);
@@ -51,6 +54,6 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 }
             }
         }
-        filterChain.doFilter(req, res); //= 요청 헤더에 오또라이제이션이(토큰이) 없으면 로그인 안하고 그냥 지나간다
+        filterChain.doFilter(req, res); /* 요청 헤더에 토큰이 없으면 그냥 지나간다 */
     }
 }

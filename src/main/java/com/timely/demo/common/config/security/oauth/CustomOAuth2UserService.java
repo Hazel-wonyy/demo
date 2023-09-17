@@ -37,13 +37,17 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
         }
     }
 
-    /** ****/
+    /** 사용자 체크**/
     private OAuth2User process(OAuth2UserRequest userRequest, OAuth2User user) {
+        /* 공급자 체크*/
         ProviderType providerType = ProviderType.valueOf(userRequest.getClientRegistration().getRegistrationId().toUpperCase());
 
+        /* DB에서 사용자 정보 조회*/
         OAuth2UserInfo userInfo = OAuth2UserInfoFactory.getOAuth2UserInfo(providerType, user.getAttributes());
+
         UserEntity savedUser = rep.findByProviderTypeAndUidAndDelYn(providerType, userInfo.getId(), 0L);
 
+        /* provider로 중복체크 */
         if (savedUser != null) {
             if (providerType != savedUser.getProviderType()) {
                 throw new OAuthProviderMissMatchException(
@@ -52,13 +56,15 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
                 );
             }
             updateUser(savedUser, userInfo);
+
+            /* 사용자를 찾지 못하면 새로운 사용자 생성*/
         } else {
             savedUser = createUser(userInfo, providerType);
         }
 
         return UserPrincipal.create(savedUser, user.getAttributes());
     }
-
+    /** 사용자 추가 **/
     private UserEntity createUser(OAuth2UserInfo userInfo, ProviderType providerType) {
         UserEntity entity = UserEntity.builder()
                 .providerType(providerType)
@@ -72,13 +78,11 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
         return entity;
     }
 
+    /** 사용자 이름 업데이트**/
     private UserEntity updateUser(UserEntity user, OAuth2UserInfo userInfo) {
         if (userInfo.getName() != null && !user.getUnm().equals(userInfo.getName())) {
             user.setUnm(userInfo.getName());
         }
-//        if (userInfo.getImageUrl() != null && !user.getPic().equals(userInfo.getImageUrl())) {
-//            user.setPic(userInfo.getImageUrl());
-//        } 원래 코드
         return user;
     }
 }

@@ -11,6 +11,8 @@ import java.io.IOException;
 
 @Slf4j
 public class RestAuthenticationEntryPoint implements AuthenticationEntryPoint {
+
+    /** 인증 실패 했을 시 오류코드 보냄 **/
     @Override
     public void commence(
             HttpServletRequest request,
