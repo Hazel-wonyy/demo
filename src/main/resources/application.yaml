@@ -46,7 +46,7 @@ spring:
     password: timely4958!@
   jpa:
     hibernate:
-      ddl-auto: update #update #create
+      ddl-auto: update #update -> 추가된 것 들만 업데이트 됨 || #create -> 프로그램 돌릴 떼 마다 DB테이블 새로 생성
     show-sql: true
     properties:
       hibernate:
