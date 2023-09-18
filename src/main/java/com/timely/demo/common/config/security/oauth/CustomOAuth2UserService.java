@@ -44,9 +44,9 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
         /* 공급자 체크*/
         ProviderType providerType = ProviderType.valueOf(userRequest.getClientRegistration().getRegistrationId().toUpperCase());
 
-        /* DB에서 사용자 정보 조회*/
         OAuth2UserInfo userInfo = OAuth2UserInfoFactory.getOAuth2UserInfo(providerType, user.getAttributes());
 
+        /* DB에서 사용자 정보 조회*/
         UserEntity savedUser = rep.findByProviderTypeAndUidAndDelYn(providerType, userInfo.getId(), 0L);
 
         /* provider로 중복체크 */
