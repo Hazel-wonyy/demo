@@ -59,7 +59,7 @@ public class UserEntity extends BaseEntity {
     private String email;
 
     @ColumnDefault("0")
-    private Long delYn;
+    private Long state;
 
 
 }
