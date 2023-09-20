@@ -12,13 +12,17 @@ import com.timely.demo.common.entity.QUserEntity;
 import com.timely.demo.product.model.ProductVO;
 import com.timely.demo.product.model.ToolVO;
 import com.timely.demo.repository.MytoolRepository;
+import com.timely.demo.repository.UserToolRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 import static com.timely.demo.common.entity.QUserEntity.userEntity;
+import static com.timely.demo.common.entity.QUserToolEntity.userToolEntity;
+import static com.timely.demo.common.entity.QMytoolEntity.mytoolEntity;
 
 @Service
 @RequiredArgsConstructor
@@ -32,7 +36,9 @@ public class ProductService {
     private final QProductSpanEntity s = QProductSpanEntity.productSpanEntity;
     private final QProductPlaceholderEntity ph = QProductPlaceholderEntity.productPlaceholderEntity;
 
-    private final MytoolRepository rep;
+    private final MytoolRepository mytoolRepository;
+    private final UserToolRepository userToolRepository;
+//    private final
 
 //    private final ProductMapper MAPPER;
 
@@ -101,11 +107,50 @@ public class ProductService {
 //                .fetchOne();
 //    }
 
-    //createTool PK 값 가져오기
+    //나의 AI 마법사 만들기 생성 결과 insert
+//    @Transactional
+    public long insResult(ToolVO vo){
+        UserToolEntity entity = UserToolEntity.builder()
+                .resultId(vo.getResultId())
+                .mytoolEntity(new MytoolEntity())
+                .userEntity(new UserEntity())
+                .body(vo.getBody())
+                .cts(LocalDateTime.now())
+                .state(1)
+                .build();
+        userToolRepository.save(entity);
+        return vo.getResultId();
+    }
+
+    //gpt 검색 결과 저장.
+    public List<ToolVO> getResult(long userId) {
+        userToolRepository.findAllByUserId(userId);
+
+        List<ToolVO> result = jpaQueryFactory
+                .select(Projections.constructor(
+                        ToolVO.class,
+                        userToolEntity.resultId,
+                        mytoolEntity.toolId,
+                        userEntity.userId,
+                        userToolEntity.body,
+                        userToolEntity.cts,
+                        userToolEntity.state))
+                .from(userToolEntity)
+                .join(userEntity).on(userToolEntity.userEntity.userId.eq(userEntity.userId))
+                .join(mytoolEntity).on(userToolEntity.mytoolEntity.toolId.eq(mytoolEntity.toolId))
+//                .join(userEntity).on(userToolEntity.userId.eq(userEntity.userId))
+//                .join(mytoolEntity).on(userToolEntity.toolId.eq(mytoolEntity.toolId))
+//                .join(userEntity).on(userEntity.userId.eq(userEntity.userId))
+//                .join(mytoolEntity).on(userToolEntity.toolId.eq(mytoolEntity.toolId.intValue()))
+                .where(userEntity.userId.eq(userId))
+                .orderBy(userToolEntity.cts.desc()) // Corrected orderBy clause
+                .fetch();
+        return result;
+    }
 
 
-    //사용자가 만든 tool 조건 insert
-    @Transactional
+    //나의 AI 마법사 만들기 생성 조건 insert
+//    @Transactional
     public long insMytool(ToolVO vo){
         MytoolEntity entity = MytoolEntity.builder()
                 .toolId(vo.getToolId())
@@ -119,8 +164,7 @@ public class ProductService {
                 .span5(vo.getSpan5())
                 .cts(LocalDateTime.now())
                 .build();
-        rep.save(entity);
+        mytoolRepository.save(entity);
         return entity.getToolId();
     }
-
 }

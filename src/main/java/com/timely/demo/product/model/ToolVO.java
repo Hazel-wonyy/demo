@@ -12,9 +12,9 @@ public class ToolVO {
 
     //user result
     private Long toolId;
-    private Long myId;
+    private Long resultId;
     private Long userId;
-    private String json;
+    private String body;
     @DateTimeFormat(pattern = "yyyy-MM-dd")
     private LocalDateTime cts;
     private int state;

@@ -23,18 +23,18 @@ public class UserToolEntity extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "my_id")
-    private int toolId;
+    @Column(name = "result_id")
+    private long resultId;
 
     @ManyToOne
     @JoinColumn(name = "tool_id", updatable = false, nullable = false)
-    private MytoolEntity MytoolEntity;
+    private MytoolEntity mytoolEntity;
 
     @ManyToOne
     @JoinColumn(name = "user_id", updatable = false, nullable = false)
-    private UserEntity UserEntity;
+    private UserEntity userEntity;
 
-    @Column(name = "body", columnDefinition = "jsonb")
+    @Column(name = "body", columnDefinition = "TEXT", nullable = false)
     private String body;
 
     @Column(name = "cts")
@@ -43,5 +43,4 @@ public class UserToolEntity extends BaseEntity {
 
     @Column(name = "state")
     private int state;
-
 }
